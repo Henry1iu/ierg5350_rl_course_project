@@ -27,11 +27,11 @@ The simulation environment is constructed using pybullet. Basicly, it contains a
 
 ## collect the multimodal dataset for encoder pre-train
 `python environments/kuka_peg_env.py`
-[Note] You will be able to get more data by changing the random seed.
+\[Note\] You will be able to get more data by changing the random seed.
 
 ## pre-train the fusion encoder
 `python multimodal/train_my_fusion_model.py`
-[Note] Specify the path to the root directory of multimodal dataset
+\[Note\] Specify the path to the root directory of multimodal dataset
 
 
 
