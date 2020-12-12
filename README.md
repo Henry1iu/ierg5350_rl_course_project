@@ -6,9 +6,9 @@ We will release a nicer version later. ( \_(:з」∠)\_ painful final exams...)
 
 The idea of this project is inspired by the papers written by Michelle Lee, Yuke Zhu and etc.:
 
-⋅⋅* Making Sense of Vision and Touch: Self-Supervised Learning of Multimodal Representations for Contact-Rich Tasks: https://arxiv.org/abs/1810.10191
+- Making Sense of Vision and Touch: Self-Supervised Learning of Multimodal Representations for Contact-Rich Tasks: https://arxiv.org/abs/1810.10191
 
-⋅⋅* Making Sense of Vision and Touch: Learning Multimodal Representations for Contact-Rich Tasks: https://arxiv.org/abs/1907.13098
+- Making Sense of Vision and Touch: Learning Multimodal Representations for Contact-Rich Tasks: https://arxiv.org/abs/1907.13098
 
 Some of the code are taken from their implementation: https://github.com/stanford-iprl-lab/multimodal_representation
 
