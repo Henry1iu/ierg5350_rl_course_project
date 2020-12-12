@@ -1,0 +1,2 @@
+best checkpoint: 49
+best loss: 71.034914

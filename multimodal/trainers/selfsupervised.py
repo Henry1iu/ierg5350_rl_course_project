@@ -113,7 +113,7 @@ class selfsupervised:
             self.logger.print("Training epoch #{}...".format(i_epoch))
             self.model.train()
 
-            for i_iter, sample_batched in tqdm(enumerate(self.dataloaders["val"])):
+            for i_iter, sample_batched in tqdm(enumerate(self.dataloaders["train"])):
 
                 t_st = time.time()
                 self.optimizer.zero_grad()
@@ -404,7 +404,6 @@ class selfsupervised:
             episode_length=self.configs["ep_length"],
             training_type=self.configs["training_type"],
             action_dim=self.configs["action_dim"],
-
         )
 
         self.datasets["val"] = MultimodalManipulationDataset(

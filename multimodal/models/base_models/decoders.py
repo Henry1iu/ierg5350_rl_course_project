@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
-from models.models_utils import init_weights
-from models.base_models.layers import (
+from multimodal.models.models_utils import init_weights
+from multimodal.models.base_models.layers import (
     conv2d,
     predict_flow,
     deconv,
@@ -71,33 +71,32 @@ class OpticalFlowDecoder(nn.Module):
         optical_flow6_up = crop_like(
             self.upsampled_optical_flow6_to_5(optical_flow6), out_img_conv5
         )
+
         out_img_deconv5 = crop_like(
             self.img_deconv5(optical_flow_in_feat), out_img_conv5
         )
-
         concat5 = torch.cat((out_img_conv5, out_img_deconv5, optical_flow6_up), 1)
         optical_flow5 = self.predict_optical_flow5(concat5)
         optical_flow5_up = crop_like(
             self.upsampled_optical_flow5_to_4(optical_flow5), out_img_conv4
         )
-        out_img_deconv4 = crop_like(self.img_deconv4(concat5), out_img_conv4)
 
+        out_img_deconv4 = crop_like(self.img_deconv4(concat5), out_img_conv4)
         concat4 = torch.cat((out_img_conv4, out_img_deconv4, optical_flow5_up), 1)
         optical_flow4 = self.predict_optical_flow4(concat4)
         optical_flow4_up = crop_like(
             self.upsampled_optical_flow4_to_3(optical_flow4), out_img_conv3
         )
-        out_img_deconv3 = crop_like(self.img_deconv3(concat4), out_img_conv3)
 
+        out_img_deconv3 = crop_like(self.img_deconv3(concat4), out_img_conv3)
         concat3 = torch.cat((out_img_conv3, out_img_deconv3, optical_flow4_up), 1)
         optical_flow3 = self.predict_optical_flow3(concat3)
         optical_flow3_up = crop_like(
             self.upsampled_optical_flow3_to_2(optical_flow3), out_img_conv2
         )
+
         out_img_deconv2 = crop_like(self.img_deconv2(concat3), out_img_conv2)
-
         concat2 = torch.cat((out_img_conv2, out_img_deconv2, optical_flow3_up), 1)
-
         optical_flow2_unmasked = self.predict_optical_flow2(concat2)
 
         optical_flow2_mask = self.predict_optical_flow2_mask(concat2)
@@ -129,3 +128,131 @@ class EeDeltaDecoder(nn.Module):
 
     def forward(self, mm_act_feat):
         return self.ee_delta_decoder(mm_act_feat)
+
+
+class ImageDecoder(nn.Module):
+    def __init__(self, z_dim, out_dim=3, mode="color", initailize_weights=True):
+        """
+        Decodes the state actor to predict the color image or depth image
+        """
+        super().__init__()
+        self.mode = mode
+
+        self.optical_flow_conv = conv2d(2 * z_dim, 64, kernel_size=1, stride=1)
+
+        self.img_deconv6 = deconv(64, 64)
+        self.img_deconv5 = deconv(64, 32)
+        self.img_deconv4 = deconv(162, 32)
+        self.img_deconv3 = deconv(98, 32)
+        self.img_deconv2 = deconv(98, 32)
+
+        self.predict_optical_flow6 = predict_flow(64)
+        self.predict_optical_flow5 = predict_flow(162)
+        self.predict_optical_flow4 = predict_flow(98)
+        self.predict_optical_flow3 = predict_flow(98)
+
+        self.predict_optical_flow1 = predict_flow(34)
+        self.predict_optical_flowf = predict_flow(out_dim)
+
+        if self.mode == "color":
+            self.img_deconv1 = deconv(66, 8)
+            self.predict_optical_flow2 = predict_flow(66)
+            self.img_deconvf = deconv(26, out_dim)
+        elif self.mode == "depth":
+            self.img_deconv1 = deconv(98, 8)
+            self.predict_optical_flow2 = predict_flow(98)
+            self.img_deconvf = deconv(42, out_dim)
+        else:
+            raise NotImplementedError
+
+        self.upsampled_optical_flow6_to_5 = nn.ConvTranspose2d(
+            2, 2, 4, 2, 1, bias=False
+        )
+        self.upsampled_optical_flow5_to_4 = nn.ConvTranspose2d(
+            2, 2, 4, 2, 1, bias=False
+        )
+        self.upsampled_optical_flow4_to_3 = nn.ConvTranspose2d(
+            2, 2, 4, 2, 1, bias=False
+        )
+        self.upsampled_optical_flow3_to_2 = nn.ConvTranspose2d(
+            2, 2, 4, 2, 1, bias=False
+        )
+        self.upsampled_optical_flow2_to_1 = nn.ConvTranspose2d(
+            2, 2, 4, 2, 1, bias=False
+        )
+
+        if self.mode == "color":
+            self.predict_optical_flow_mask = nn.Conv2d(3, 1, kernel_size=3, stride=1, padding=1, bias=False)
+        elif self.mode == "depth":
+            self.predict_optical_flow_mask = nn.Conv2d(out_dim, 1, kernel_size=3, stride=1, padding=1, bias=False)
+        else:
+            raise NotImplementedError
+
+        if initailize_weights:
+            init_weights(self.modules())
+
+    def forward(self, tiled_feat, img_out_convs):
+        """
+        Predicts the optical flow and optical flow mask.
+
+        Args:
+            tiled_feat: action conditioned z (output of fusion + action network)
+            img_out_convs: outputs of the image encoders (skip connections)
+        """
+        out_img_conv1, out_img_conv2, out_img_conv3, out_img_conv4, out_img_conv5, out_img_conv6 = (
+            img_out_convs
+        )
+
+        optical_flow_in_f = torch.cat([out_img_conv6, tiled_feat], 1)
+        optical_flow_in_f2 = self.optical_flow_conv(optical_flow_in_f)
+        optical_flow_in_feat = self.img_deconv6(optical_flow_in_f2)
+
+        # predict optical flow pyramids
+        optical_flow6 = self.predict_optical_flow6(optical_flow_in_feat)
+        optical_flow6_up = crop_like(
+            self.upsampled_optical_flow6_to_5(optical_flow6), out_img_conv5
+        )
+        out_img_deconv5 = crop_like(
+            self.img_deconv5(optical_flow_in_feat), out_img_conv5
+        )
+
+        concat5 = torch.cat((out_img_conv5, out_img_deconv5, optical_flow6_up), 1)
+        optical_flow5 = self.predict_optical_flow5(concat5)
+        optical_flow5_up = crop_like(
+            self.upsampled_optical_flow5_to_4(optical_flow5), out_img_conv4
+        )
+        out_img_deconv4 = crop_like(self.img_deconv4(concat5), out_img_conv4)
+
+        concat4 = torch.cat((out_img_conv4, out_img_deconv4, optical_flow5_up), 1)
+        optical_flow4 = self.predict_optical_flow4(concat4)
+        optical_flow4_up = crop_like(
+            self.upsampled_optical_flow4_to_3(optical_flow4), out_img_conv3
+        )
+        out_img_deconv3 = crop_like(self.img_deconv3(concat4), out_img_conv3)
+
+        concat3 = torch.cat((out_img_conv3, out_img_deconv3, optical_flow4_up), 1)
+        optical_flow3 = self.predict_optical_flow3(concat3)
+        optical_flow3_up = crop_like(
+            self.upsampled_optical_flow3_to_2(optical_flow3), out_img_conv2
+        )
+        out_img_deconv2 = crop_like(self.img_deconv2(concat3), out_img_conv2)
+
+        concat2 = torch.cat((out_img_conv2, out_img_deconv2, optical_flow3_up), 1)
+        optical_flow2 = self.predict_optical_flow2(concat2)
+        optical_flow2_up = crop_like(
+            self.upsampled_optical_flow2_to_1(optical_flow2), out_img_conv1
+        )
+        out_img_deconv1 = crop_like(self.img_deconv1(concat2), out_img_conv1)
+
+        concat1 = torch.cat((out_img_conv1, out_img_deconv1, optical_flow2_up), 1)
+        out_img_deconvf = self.img_deconvf(concat1)
+
+        optical_flowf_mask = self.predict_optical_flow_mask(out_img_deconvf)
+
+        if self.mode == "depth":
+            optical_flowf = out_img_deconvf * torch.sigmoid(optical_flowf_mask)
+            return optical_flowf
+        else:
+            return out_img_deconvf
+
+

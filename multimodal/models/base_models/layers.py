@@ -20,8 +20,8 @@ def deconv(in_planes, out_planes):
     )
 
 
-def predict_flow(in_planes):
-    return nn.Conv2d(in_planes, 2, kernel_size=3, stride=1, padding=1, bias=False)
+def predict_flow(in_planes, out_planes=2):
+    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=1, padding=1, bias=False)
 
 
 def conv2d(in_channels, out_channels, kernel_size=3, stride=1, dilation=1, bias=True):

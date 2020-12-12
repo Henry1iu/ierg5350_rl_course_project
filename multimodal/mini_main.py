@@ -9,7 +9,7 @@ if __name__ == "__main__":
 
     # Load the config file
     parser = argparse.ArgumentParser(description="Sensor fusion model")
-    parser.add_argument("--config", help="YAML config file")
+    parser.add_argument("--config", help="YAML config file", default="configs/training_default.yaml")
     parser.add_argument("--notes", default="", help="run notes")
     parser.add_argument("--dev", type=bool, default=False, help="run in dev mode")
     parser.add_argument(

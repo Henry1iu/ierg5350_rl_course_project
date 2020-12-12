@@ -1,6 +1,7 @@
+import torch
 import torch.nn as nn
-from models.models_utils import init_weights
-from models.base_models.layers import CausalConv1D, Flatten, conv2d
+from multimodal.models.models_utils import init_weights
+from multimodal.models.base_models.layers import CausalConv1D, Flatten, conv2d
 
 
 class ProprioEncoder(nn.Module):
@@ -33,6 +34,7 @@ class ForceEncoder(nn.Module):
     def __init__(self, z_dim, initailize_weights=True):
         """
         Force encoder taken from selfsupervised code
+        Modified to fit the (6, 1) force sensor input
         """
         super().__init__()
         self.z_dim = z_dim
@@ -54,13 +56,18 @@ class ForceEncoder(nn.Module):
             init_weights(self.modules())
 
     def forward(self, force):
-        return self.frc_encoder(force)
+        if force.shape[1:] == (6, 1):
+            force_concated = force
+            for i in range(31):
+                force_concated = torch.cat([force_concated, force], dim=2)
+        return self.frc_encoder(force_concated)
 
 
 class ImageEncoder(nn.Module):
     def __init__(self, z_dim, initailize_weights=True):
         """
         Image encoder taken from Making Sense of Vision and Touch
+        Modified to fit the 224*224 input image
         """
         super().__init__()
         self.z_dim = z_dim
@@ -71,7 +78,8 @@ class ImageEncoder(nn.Module):
         self.img_conv4 = conv2d(64, 64, stride=2)
         self.img_conv5 = conv2d(64, 128, stride=2)
         self.img_conv6 = conv2d(128, self.z_dim, stride=2)
-        self.img_encoder = nn.Linear(4 * self.z_dim, 2 * self.z_dim)
+        self.img_fc1 = nn.Linear(16 * self.z_dim, 8 * self.z_dim)
+        self.img_fc2 = nn.Linear(8 * self.z_dim, 2 * self.z_dim)
         self.flatten = Flatten()
 
         if initailize_weights:
@@ -97,7 +105,8 @@ class ImageEncoder(nn.Module):
 
         # image embedding parameters
         flattened = self.flatten(out_img_conv6)
-        img_out = self.img_encoder(flattened).unsqueeze(2)
+        img_out = self.img_fc1(flattened)
+        img_out = self.img_fc2(img_out).unsqueeze(2)
 
         return img_out, img_out_convs
 
@@ -117,7 +126,8 @@ class DepthEncoder(nn.Module):
         self.depth_conv5 = conv2d(64, 128, stride=2)
         self.depth_conv6 = conv2d(128, self.z_dim, stride=2)
 
-        self.depth_encoder = nn.Linear(4 * self.z_dim, 2 * self.z_dim)
+        self.depth_fc1 = nn.Linear(16 * self.z_dim, 8 * self.z_dim)
+        self.depth_fc2 = nn.Linear(8 * self.z_dim, 2 * self.z_dim)
         self.flatten = Flatten()
 
         if initailize_weights:
@@ -143,6 +153,34 @@ class DepthEncoder(nn.Module):
 
         # depth embedding parameters
         flattened = self.flatten(out_depth_conv6)
-        depth_out = self.depth_encoder(flattened).unsqueeze(2)
+        depth_out = self.depth_fc1(flattened)
+        depth_out = self.depth_fc2(depth_out).unsqueeze(2)
 
         return depth_out, depth_out_convs
+
+
+if __name__ == "__main__":
+    img_encoder = ImageEncoder(128)
+    img_encoder.eval()
+
+    depth_encoder = DepthEncoder(128)
+    depth_encoder.eval()
+
+    force_encoder = ForceEncoder(128)
+    force_encoder.eval()
+
+    x = torch.rand((1, 3, 224, 224))
+    d = torch.rand((1, 1, 224, 224))
+    f = torch.rand((1, 6, 1))
+
+    # y, convs = img_encoder(x)
+    # y, convs = depth_encoder(d)
+    y = force_encoder(f)
+
+    print(y.shape)
+    # print(convs[0].shape)
+    # print(convs[1].shape)
+    # print(convs[2].shape)
+    # print(convs[3].shape)
+    # print(convs[4].shape)
+    # print(convs[5].shape)

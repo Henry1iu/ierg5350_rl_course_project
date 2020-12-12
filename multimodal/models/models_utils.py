@@ -78,4 +78,4 @@ def filter_depth(depth_image):
     depth_image = torch.where(
         depth_image > 1e-7, depth_image, torch.zeros_like(depth_image)
     )
-    return torch.where(depth_image < 2, depth_image, torch.zeros_like(depth_image))
+    return torch.where(depth_image < 2, depth_image, torch.zeros_like(depth_image)).transpose(1, 3).transpose(2, 3)
