@@ -1,10 +1,15 @@
 # Reinforcement Learning of Peg Insertion Robot Arm Agent with Multimodal Sensor Fusion 
 
-A prelimilary version of the python implementation. The code is not well organized currently. We will release a nicer version later. ( _(:з」∠)_ painful final exams...)
+A prelimilary version of the python implementation. The code is not well organized currently. 
+
+We will release a nicer version later. ( \_(:з」∠)\_ painful final exams...)
 
 The idea of this project is inspired by the papers written by Michelle Lee, Yuke Zhu and etc.:
+
 Making Sense of Vision and Touch: Self-Supervised Learning of Multimodal Representations for Contact-Rich Tasks: https://arxiv.org/abs/1810.10191
+
 Making Sense of Vision and Touch: Learning Multimodal Representations for Contact-Rich Tasks: https://arxiv.org/abs/1907.13098
+
 Some of the code are taken from their implementation: https://github.com/stanford-iprl-lab/multimodal_representation
 
 The PPO trainer deployed is borrowed from the Assignment 5 of IERG5350 - Reinforcement Learning: https://github.com/cuhkrlcourse/ierg5350-assignment
