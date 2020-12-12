@@ -1,0 +1,60 @@
+<?xml version="1.0" ?>
+<robot name="target_box">
+  <material name="gray">
+      <color rgba="0.2 0.2 0.2 1.0"/>
+  </material>
+
+  <link concave="yes" name="base_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="1.0"/>
+      <inertia
+        ixx="1"
+        ixy="0"
+        ixz="0"
+        iyy="1"
+        iyz="0"
+        izz="1"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/hezi.stl" scale="1.0 1.0 1.0"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+    <collision concave="yes">
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/hezi.stl" scale="1.0 1.0 1.0"/>
+      </geometry>
+    </collision>
+  </link>
+
+  <joint name="base_to_cover" type="fixed">
+      <parent link="base_link"/>
+      <child link="cover"/>
+      <origin xyz="0 0 0.094"/>
+  </joint>
+
+  <link concave="yes" name="cover">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="1.0"/>
+      <inertia ixx="1" ixy="0" ixz="0" iyy="1" iyz="0" izz="1"/>
+    </inertial>
+    <visual>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/box_cover.stl" scale=".002 .002 .002"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+    <collision concave="yes">
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <geometry>
+        <mesh filename="meshes/box_cover.stl" scale=".001 .001 .001"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>

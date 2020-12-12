@@ -1,0 +1,33 @@
+<?xml version="1.0" ?>
+<robot name="target_box_new">
+  <material name="gray">
+      <color rgba="0.2 0.2 0.2 1.0"/>
+  </material>
+
+  <link concave="yes" name="base_link">
+    <inertial>
+      <origin xyz="0 0 0" rpy="-1.5707963267949 0 0" />
+      <mass value="0.081822" />
+      <inertia
+        ixx="0.000132074048250048"
+        ixy="-5.71705485941562E-20"
+        ixz="-3.53884855372794E-20"
+        iyy="0.000132074048250048"
+        iyz="1.63515569788758E-21"
+        izz="0.000221304677455394" />
+    </inertial>
+    <visual>
+      <origin xyz="0 0 0" rpy="-1.5707963267949 0 0" />
+      <geometry>
+        <mesh filename="meshes/hezi.stl" scale="2.0 2.0 2.0"/>
+      </geometry>
+      <material name="gray"/>
+    </visual>
+    <collision concave="yes">
+      <origin xyz="0 0 0" rpy="-1.5707963267949 0 0" />
+      <geometry>
+        <mesh filename="meshes/hezi.stl" scale="2.0 2.0 2.0"/>
+      </geometry>
+    </collision>
+  </link>
+</robot>
