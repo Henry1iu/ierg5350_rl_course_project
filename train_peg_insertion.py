@@ -140,7 +140,11 @@ def train(args):
         env_id, algo, datetime.datetime.now().strftime("%m-%d_%H-%M")
     ))
 
-    env = KukaPegInsertionGymEnv(renders=False, srl_model="raw_pixels", is_discrete=False, shape_reward=False)
+    env = KukaPegInsertionGymEnv(renders=False,
+                                 srl_model="raw_pixels",
+                                 is_discrete=False,
+                                 shape_reward=False,
+                                 force_down=False)
 
     eval_env = env
 
@@ -216,7 +220,7 @@ def _train(trainer, envs, eval_envs, config, num_envs, algo, log_dir, tournament
 
                 trainer.rollouts.insert(obs, actions, action_log_prob, values, rewards, masks)
 
-                # break the loop and reset the env
+                # # break the loop and reset the env
                 if done:
                     obs = envs.reset()
                     trainer.rollouts.before_update(obs)

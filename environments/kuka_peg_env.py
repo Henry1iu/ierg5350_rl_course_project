@@ -496,7 +496,7 @@ class KukaPegInsertionGymEnv(SRLGymEnv):
         else:
             self.n_steps_outside = 0
 
-        if contact_with_table or self.n_contacts >= N_CONTACTS_BEFORE_TERMINATION \
+        if 0 or self.n_contacts >= N_CONTACTS_BEFORE_TERMINATION \
                 or self.n_steps_outside >= N_STEPS_OUTSIDE_SAFETY_SPHERE:
             self.terminated = True
 
@@ -524,9 +524,9 @@ if __name__ == "__main__":
     # init env
     import pickle
     import datetime
-    f = open("../multimodal/dataset/save_{}.pkl".format(datetime.datetime.now()), "wb")
+    # f = open("../multimodal/dataset/save_{}.pkl".format(datetime.datetime.now()), "wb")
 
-    env = KukaPegInsertionGymEnv(renders=False,
+    env = KukaPegInsertionGymEnv(renders=True,
                                  srl_model="raw_pixels",
                                  is_discrete=False,
                                  shape_reward=False,
@@ -544,19 +544,20 @@ if __name__ == "__main__":
 
     sample_count = 0
     contact_count = 0
-    np.random.seed(369)     # 111, 555, 666, 777, 369
+    env.seed(369)     # 111, 555, 666, 777, 369
+
     while True:
         # chosen action randomly
         action = env.action_space.sample() * 10          # amplify the action
         (color, depth, ft_reading, _), reward, done, _ = env.step(action)
         # print("[Multi-Modal Data Collection]: reward:{}".format(reward))
         # visualize the data
-        # cv2.imshow("Color Image", cv2.cvtColor(color, cv2.COLOR_BGR2RGB))
-        # cv2.imshow("Depth Image", np.stack([depth, depth, depth], axis=2))
+        cv2.imshow("Color Image", cv2.cvtColor(color, cv2.COLOR_BGR2RGB))
+        cv2.imshow("Depth Image", np.stack([depth, depth, depth], axis=2))
         # print("color:", color.shape, type(color), color.dtype, np.min(color), np.max(color))
         # print("depth:", depth.shape, type(depth), depth.dtype, np.min(depth), np.max(depth))
         # print("force:", ft_reading.shape, type(ft_reading), ft_reading.dtype)
-        # cv2.waitKey(1)
+        cv2.waitKey(1)
         data_container.update(np.array(ft_reading, ndmin=2))
         dynamic_update.update(x, data_container.y)
 
@@ -570,7 +571,7 @@ if __name__ == "__main__":
             "contact":    True if reward > 0 else False
         }
 
-        pickle.dump(self_supervise_data, f)
+        # pickle.dump(self_supervise_data, f)
         sample_count += 1
         color_prev = color
         depth_prev = depth

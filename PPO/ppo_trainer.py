@@ -37,14 +37,14 @@ class PPOConfig:
 
         # Learning
         self.gamma = 0.95
-        self.lr = 1e-3
+        self.lr = 5e-4
         self.grad_norm_max = 50.0
         self.entropy_loss_weight = 0.01
-        self.ppo_epoch = 30
+        self.ppo_epoch = 10
         self.mini_batch_size = 256
         self.ppo_clip_param = 0.1
         self.USE_GAE = True
-        self.gae_lambda = 0.93
+        self.gae_lambda = 0.9
         self.value_loss_weight = 1.0
         # self.value_loss_weight = 0.5
 
